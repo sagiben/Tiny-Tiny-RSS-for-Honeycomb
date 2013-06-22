@@ -1,13 +1,4 @@
-Tiny Tiny RSS client for Android
-================================
+This is a fork of the official tt-rss client, stripped from trial restrictions and all related code and menu items.
 
-http://tt-rss.org/tt-rss-android
+See <https://github.com/gothfox/Tiny-Tiny-RSS-for-Honeycomb#tiny-tiny-rss-client-for-android> for project readme.
 
-Licensed under GNU GPL version 2.
-
-Copyright (c) 2011 Andrew Dolgov (unless explicitly stated otherwise).
-
-## See also
-
-* FAQ: http://tt-rss.org/redmine/projects/tt-rss-android/wiki/#FAQ
-* Forum: http://tt-rss.org/forum
