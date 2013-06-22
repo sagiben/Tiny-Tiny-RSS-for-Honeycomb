@@ -148,12 +148,7 @@
     <string name="prefs_dim_status_bar">Assombrir la barre de statut</string>
     <string name="prefs_dim_status_bar_long">Assombrir la barre de satut pendant la lecture</string>
     <string name="article_comments">%1$d commentaires</string>
-    <string name="trial_mode_prompt">Mode évaluation, %1$d jour(s) restant(s).</string>
-    <string name="trial_purchase">Débloquer la version complète</string>
-    <string name="trial_expired">La période d\'évaluation a expiré</string>
-    <string name="trial_expired_message">Pour continuer à utiliser Tiny Tiny RSS merci de débloquer la version complète en achetant la clé.</string>
     <string name="theme_sepia">Sepia</string>
-    <string name="trial_thanks">Version complète, merci de votre support!</string>
     <string name="prefs_fullscreen_mode">Mode plein écran</string>
     <string name="reading">Lecture</string>
     <string name="theme_dark_gray">Gris sombre</string>

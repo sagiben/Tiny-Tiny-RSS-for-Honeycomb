@@ -148,12 +148,7 @@
     <string name="prefs_dim_status_bar">Ocultar barra de status</string>
     <string name="prefs_dim_status_bar_long">Ocultar barra de status durante a leitura</string>
     <string name="article_comments">%1$d comentários</string>
-    <string name="trial_mode_prompt">Modo de teste, resta(m) %1$d dia(s).</string>
-    <string name="trial_purchase">Desbloquear a versão completa</string>
-    <string name="trial_expired">Período de teste encerrado</string>
-    <string name="trial_expired_message">Para continuar usando o Tiny Tiny RSS por favor desbloqueie a versão completa comprando a chave.</string>
     <string name="theme_sepia">Sepia</string>
-    <string name="trial_thanks">Versão completa, obrigado pelo suporte!</string>
     <string name="prefs_fullscreen_mode">Modo tela cheia</string>
     <string name="reading">Lendo</string>
     <string name="theme_dark_gray">Cinza escuro</string>

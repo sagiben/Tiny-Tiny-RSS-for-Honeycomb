@@ -147,12 +147,7 @@
     <string name="prefs_dim_status_bar">Oscurare barra di stato</string>
     <string name="prefs_dim_status_bar_long">Oscurare la barra di stato durante la lettura</string>
     <string name="article_comments">%1$d commenti</string>
-    <string name="trial_mode_prompt">Modalità demo, %1$d giorno/i rimanenti.</string>
-    <string name="trial_purchase">Sblocca versione Full</string>
-    <string name="trial_expired">Demo scaduta</string>
-    <string name="trial_expired_message">Per continuare ad usare Tiny Tiny RSS si prega di sbloccare la versione Full acquistando l\'app chiave.</string>
     <string name="theme_sepia">Seppia</string>
-    <string name="trial_thanks">Versione Full, Grazie per il supporto!</string>
     <string name="prefs_fullscreen_mode">Modalità Fullscreen</string>
     <string name="reading">Lettura</string>
     <string name="theme_dark_gray">Grigio scuro</string>
