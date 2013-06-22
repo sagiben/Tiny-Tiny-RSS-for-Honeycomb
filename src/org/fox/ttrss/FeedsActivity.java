@@ -98,7 +98,6 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 			ft.commit();
 				
 			AppRater.appLaunched(this);
-			checkTrial(true);
 
 		} else { // savedInstanceState != null
 			m_actionbarUpEnabled = savedInstanceState.getBoolean("actionbarUpEnabled");
