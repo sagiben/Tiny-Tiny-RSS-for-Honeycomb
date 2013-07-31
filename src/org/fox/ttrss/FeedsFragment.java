@@ -345,7 +345,7 @@ public class FeedsFragment extends Fragment implements OnItemClickListener, OnSh
 							String baseUrl = "";
 							
 							if (!iconsStr.contains("://")) {
-								baseUrl = m_prefs.getString("ttrss_url", "") + "/" + iconsStr;									
+								baseUrl = m_prefs.getString("ttrss_url", "").trim() + "/" + iconsStr;									
 							} else {
 								baseUrl = iconsStr;
 							}
@@ -589,19 +589,23 @@ public class FeedsFragment extends Fragment implements OnItemClickListener, OnSh
 		private String m_baseUrl;
 		
 		public GetIconsTask(String baseUrl) {
-			m_baseUrl = baseUrl;
+			m_baseUrl = baseUrl.trim();
 		}
 
 		@Override
 		protected Integer doInBackground(FeedList... params) {
 
+			FeedList localList = new FeedList();			
+			
 			try {
+				localList.addAll(params[0]);
+
 				File storage = m_activity.getExternalCacheDir();
 				final File iconPath = new File(storage.getAbsolutePath() + ICON_PATH);
 				if (!iconPath.exists()) iconPath.mkdirs();
 			
 				if (iconPath.exists()) {
-					for (Feed feed : params[0])	 {
+					for (Feed feed : localList)	 {
 						if (feed.id > 0 && feed.has_icon && !feed.is_cat) {
 							File outputFile = new File(iconPath.getAbsolutePath() + "/" + feed.id + ".ico");
 							String fetchUrl = m_baseUrl + "/" + feed.id + ".ico";
@@ -631,6 +635,11 @@ public class FeedsFragment extends Fragment implements OnItemClickListener, OnSh
 			try {
 				URL url = new URL(fetchUrl);
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+				
+				conn.setConnectTimeout(1000);
+				conn.setReadTimeout(5000);
+				
+				Log.d(TAG, "[downloadFile] " + url);
 
 				String httpLogin = m_prefs.getString("http_login", "");
 				String httpPassword = m_prefs.getString("http_password", "");
