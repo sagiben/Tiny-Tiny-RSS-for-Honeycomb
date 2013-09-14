@@ -299,8 +299,8 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 		//list.setEmptyView(view.findViewById(R.id.no_headlines));
 		registerForContextMenu(list);
 
-		if (m_activity.isSmallScreen())
-			view.findViewById(R.id.headlines_fragment).setPadding(0, 0, 0, 0);
+		//if (m_activity.isSmallScreen())
+		//view.findViewById(R.id.headlines_fragment).setPadding(0, 0, 0, 0);
 
 		Log.d(TAG, "onCreateView, feed=" + m_feed);
 		
@@ -795,13 +795,13 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 				});
 			}
 			
-			ImageButton ib = (ImageButton) v.findViewById(R.id.article_menu_button);
+			ImageView iv = (ImageView) v.findViewById(R.id.article_menu_button);
 			
-			if (ib != null) {
-				if (m_activity.isDarkTheme())
-					ib.setImageResource(R.drawable.ic_mailbox_collapsed_holo_dark);
+			if (iv != null) {
+				//if (m_activity.isDarkTheme())
+				//	ib.setImageResource(R.drawable.ic_mailbox_collapsed_holo_dark);
 				
-				ib.setOnClickListener(new OnClickListener() {					
+				iv.setOnClickListener(new OnClickListener() {					
 					@Override
 					public void onClick(View v) {
 						getActivity().openContextMenu(v);
