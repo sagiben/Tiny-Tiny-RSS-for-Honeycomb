@@ -13,6 +13,8 @@ import org.fox.ttrss.types.Feed;
 import org.fox.ttrss.util.HeadlinesRequest;
 import org.jsoup.Jsoup;
 
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -34,11 +36,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.view.animation.LayoutAnimationController;
-import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
@@ -46,14 +43,13 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.gson.JsonElement;
 
-public class HeadlinesFragment extends Fragment implements OnItemClickListener, OnScrollListener {
+public class HeadlinesFragment extends Fragment implements OnItemClickListener, OnScrollListener, OnRefreshListener {
 	public static enum ArticlesSelection { ALL, NONE, UNREAD };
 
 	public static final int HEADLINES_REQUEST_SIZE = 30;
@@ -298,6 +294,8 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 		list.setOnScrollListener(this);
 		//list.setEmptyView(view.findViewById(R.id.no_headlines));
 		registerForContextMenu(list);
+		
+		m_activity.m_pullToRefreshAttacher.addRefreshableView(list, this);
 
 		//if (m_activity.isSmallScreen())
 		//view.findViewById(R.id.headlines_fragment).setPadding(0, 0, 0, 0);
@@ -361,7 +359,7 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "serial" })
+	@SuppressWarnings({ "serial" })
 	public void refresh(boolean append) {
 		if (m_activity != null && m_feed != null) {
 			m_refreshInProgress = true;
@@ -390,7 +388,7 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 			final String sessionId = m_activity.getSessionId();
 			final boolean isCat = m_feed.is_cat;
 			
-			HeadlinesRequest req = new HeadlinesRequest(getActivity().getApplicationContext(), m_activity) {
+			HeadlinesRequest req = new HeadlinesRequest(getActivity().getApplicationContext(), m_activity, m_feed) {
 				@Override
 				protected void onProgressUpdate(Integer... progress) {
 					m_activity.setProgress(Math.round((((float)progress[0] / (float)progress[1]) * 10000)));
@@ -411,7 +409,11 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 					m_activity.setProgressBarVisibility(false);
 					
 					super.onPostExecute(result);	
-					
+
+					if (isAdded()) {
+						m_activity.m_pullToRefreshAttacher.setRefreshComplete();
+					}
+
 					if (result != null) {
 						m_refreshInProgress = false;
 						
@@ -420,6 +422,7 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 						
 						m_adapter.notifyDataSetChanged();
 						m_listener.onHeadlinesLoaded(fappend);
+						
 					} else {
 						if (m_lastError == ApiError.LOGIN_FAILED) {
 							m_activity.login();
@@ -949,6 +952,11 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 
 	public Feed getFeed() {
 		return m_feed;
+	}
+
+	@Override
+	public void onRefreshStarted(View view) {
+		refresh(false);		
 	}
 
 	

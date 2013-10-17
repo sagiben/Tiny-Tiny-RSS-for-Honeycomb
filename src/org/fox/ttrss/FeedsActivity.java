@@ -1,5 +1,6 @@
 package org.fox.ttrss;
 
+
 import java.util.Date;
 
 import org.fox.ttrss.types.Article;
@@ -8,23 +9,23 @@ import org.fox.ttrss.types.Feed;
 import org.fox.ttrss.types.FeedCategory;
 import org.fox.ttrss.util.AppRater;
 
-import com.actionbarsherlock.view.MenuItem;
-import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
-
-import android.view.ViewGroup;
-import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.Intent.ShortcutIconResource;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.View;
 import android.widget.LinearLayout;
+
+import com.actionbarsherlock.view.MenuItem;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 public class FeedsActivity extends OnlineActivity implements HeadlinesEventListener {
 	private final String TAG = this.getClass().getSimpleName();
@@ -54,7 +55,7 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 				findViewById(R.id.sw600dp_port_anchor) == null);
 		
 		GlobalState.getInstance().load(savedInstanceState);
-
+		
 		if (isSmallScreen() || findViewById(R.id.sw600dp_port_anchor) != null) {
 			m_slidingMenu = new SlidingMenu(this);
 			
@@ -74,7 +75,7 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 					if (m_actionbarRevertDepth == 0) {
 						m_actionbarUpEnabled = false;
 						getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-						refresh();
+						refresh(false);
 					}
 					
 					m_feedIsSelected = false;
@@ -87,8 +88,25 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 			if (m_slidingMenu != null)
 				m_slidingMenu.showMenu();
 
-			FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+			Intent i = getIntent();
+			boolean shortcutMode = i.getBooleanExtra("shortcut_mode", false);
+			
+			Log.d(TAG, "is_shortcut_mode: " + shortcutMode);
+
+			if (shortcutMode) {
+				int feedId = i.getIntExtra("feed_id", 0);
+				boolean isCat = i.getBooleanExtra("feed_is_cat", false);
+				String feedTitle = i.getStringExtra("feed_title");
 				
+				Feed tmpFeed = new Feed(feedId, feedTitle, isCat);
+				
+				onFeedSelected(tmpFeed);
+			}
+			
+			m_pullToRefreshAttacher.setRefreshing(true);
+
+			FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+							
 			if (m_prefs.getBoolean("enable_cats", false)) {
 				ft.replace(R.id.feeds_fragment, new FeedCategoriesFragment(), FRAG_CATS);				
 			} else {
@@ -163,6 +181,7 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 	
 	public void onFeedSelected(Feed feed) {
 		GlobalState.getInstance().m_loadedArticles.clear();
+		m_pullToRefreshAttacher.setRefreshing(true);
 
 			FragmentTransaction ft = getSupportFragmentManager()
 					.beginTransaction();
@@ -217,6 +236,8 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 	
 	public void onCatSelected(FeedCategory cat, boolean openAsFeed) {
 		FeedCategoriesFragment fc = (FeedCategoriesFragment) getSupportFragmentManager().findFragmentByTag(FRAG_CATS);
+		
+		m_pullToRefreshAttacher.setRefreshing(true);
 		
 		if (!openAsFeed) {
 			
@@ -286,6 +307,7 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 			refresh();
 			return true;
 		case R.id.update_feeds:
+			m_pullToRefreshAttacher.setRefreshing(true);
 			refresh();
 			return true;
 		default:
@@ -383,5 +405,28 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 		if (requestCode == HEADLINES_REQUEST) {
 			GlobalState.getInstance().m_activeArticle = null;			
 		}		
+	}
+
+	public void createFeedShortcut(Feed feed) {
+		final Intent shortcutIntent = new Intent(this, FeedsActivity.class);
+		shortcutIntent.putExtra("feed_id", feed.id);
+		shortcutIntent.putExtra("feed_is_cat", feed.is_cat);
+		shortcutIntent.putExtra("feed_title", feed.title);
+		shortcutIntent.putExtra("shortcut_mode", true);
+		
+		Intent intent = new Intent("com.android.launcher.action.INSTALL_SHORTCUT");
+		
+		intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, feed.title);
+		intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
+		intent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, Intent.ShortcutIconResource.fromContext(this, R.drawable.icon));  
+		intent.putExtra("duplicate", false);
+		
+		sendBroadcast(intent);
+		
+		toast(R.string.shortcut_has_been_placed_on_the_home_screen);
+	}
+	
+	public void createCategoryShortcut(FeedCategory cat) {
+		createFeedShortcut(new Feed(cat.id, cat.title, true));
 	}
 }

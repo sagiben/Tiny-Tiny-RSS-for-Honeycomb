@@ -7,7 +7,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.fox.ttrss.CommonActivity;
 import org.fox.ttrss.R;
 import org.fox.ttrss.util.ImageCacheService;
 import org.jsoup.Jsoup;
@@ -20,6 +19,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -39,8 +39,8 @@ import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebSettings.LayoutAlgorithm;
-import android.webkit.WebView.HitTestResult;
 import android.webkit.WebView;
+import android.webkit.WebView.HitTestResult;
 import android.widget.TextView;
 
 public class OfflineArticleFragment extends Fragment implements GestureDetector.OnDoubleTapListener {
@@ -212,7 +212,7 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 			    getActivity().getTheme().resolveAttribute(R.attr.linkColor, tv, true);
 			    
 			    // prevent flicker in ics
-			    if (android.os.Build.VERSION.SDK_INT >= 11) {
+			    if (!m_prefs.getBoolean("webview_hardware_accel", true)) {
 			    	web.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 			    }
 			    
@@ -225,7 +225,8 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 				} else {
 					cssOverride = "body { background : transparent; }";
 				}
-				web.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+				// seriously?
+				web.setBackgroundColor(Color.argb(1, 0, 0, 0));
 				
 				String hexColor = String.format("#%06X", (0xFFFFFF & tv.data));
 			    cssOverride += " a:link {color: "+hexColor+";} a:visited { color: "+hexColor+";}";
@@ -281,7 +282,7 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 					cssOverride +
 					"</style>" +
 					"</head>" +
-					"<body>" + articleContent + "<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></body></html>";
+					"<body>" + articleContent + "</body></html>";
 					
 				try {
 					String baseUrl = null;

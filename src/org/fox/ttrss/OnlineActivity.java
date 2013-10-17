@@ -13,14 +13,16 @@ import org.fox.ttrss.types.ArticleList;
 import org.fox.ttrss.types.Feed;
 import org.fox.ttrss.types.Label;
 import org.fox.ttrss.widget.SmallWidgetProvider;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
+import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshAttacher;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.appwidget.AppWidgetManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -36,11 +38,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
-import android.webkit.WebView;
-import android.webkit.WebView.HitTestResult;
 import android.widget.EditText;
 import android.widget.SearchView;
-import android.widget.ShareActionProvider;
 import android.widget.TextView;
 
 import com.actionbarsherlock.view.ActionMode;
@@ -51,11 +50,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 
 public class OnlineActivity extends CommonActivity {
@@ -70,6 +64,8 @@ public class OnlineActivity extends CommonActivity {
 	private HeadlinesActionModeCallback m_headlinesActionModeCallback;
 
 	private String m_lastImageHitTestUrl;
+
+	protected PullToRefreshAttacher m_pullToRefreshAttacher;
 
 	private BroadcastReceiver m_broadcastReceiver = new BroadcastReceiver() {
 		@Override
@@ -153,7 +149,7 @@ public class OnlineActivity extends CommonActivity {
 			requestWindowFeature(Window.FEATURE_PROGRESS);
 		}
 
-		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		//requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
 		setProgressBarVisibility(false);
 		setProgressBarIndeterminateVisibility(false);
@@ -167,6 +163,8 @@ public class OnlineActivity extends CommonActivity {
 		Log.d(TAG, "m_isOffline=" + isOffline);
 
 		setContentView(R.layout.login);
+
+		m_pullToRefreshAttacher = PullToRefreshAttacher.get(this);
 
 		if (isOffline) {
 			switchOfflineSuccess();			
@@ -916,6 +914,7 @@ public class OnlineActivity extends CommonActivity {
 			return true;
 		case R.id.update_headlines:
 			if (hf != null) {
+				m_pullToRefreshAttacher.setRefreshing(true);
 				hf.refresh(false);
 			}
 			return true;
@@ -1171,7 +1170,6 @@ public class OnlineActivity extends CommonActivity {
 		req.execute(map);
 	}
 
-	@SuppressWarnings({ "unchecked", "serial" })
 	public void saveArticleMarked(final Article article) {
 		ApiRequest req = new ApiRequest(getApplicationContext()) {
 			protected void onPostExecute(JsonElement result) {
@@ -1312,7 +1310,6 @@ public class OnlineActivity extends CommonActivity {
 		return super.onKeyUp(keyCode, event);		
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void catchupFeed(final Feed feed) {
 		Log.d(TAG, "catchupFeed=" + feed);
 
@@ -1336,7 +1333,6 @@ public class OnlineActivity extends CommonActivity {
 		req.execute(map);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void toggleArticlesMarked(final ArticleList articles) {
 		ApiRequest req = new ApiRequest(getApplicationContext());
 
@@ -1354,7 +1350,6 @@ public class OnlineActivity extends CommonActivity {
 		req.execute(map);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void toggleArticlesUnread(final ArticleList articles) {
 		ApiRequest req = new ApiRequest(getApplicationContext());
 
@@ -1373,7 +1368,6 @@ public class OnlineActivity extends CommonActivity {
 		//refresh();
 	}
 
-	@SuppressWarnings("unchecked")
 	public void toggleArticlesPublished(final ArticleList articles) {
 		ApiRequest req = new ApiRequest(getApplicationContext());
 

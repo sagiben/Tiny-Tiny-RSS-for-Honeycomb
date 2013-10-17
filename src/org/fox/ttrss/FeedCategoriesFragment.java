@@ -11,6 +11,8 @@ import org.fox.ttrss.types.Feed;
 import org.fox.ttrss.types.FeedCategory;
 import org.fox.ttrss.types.FeedCategoryList;
 
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -44,7 +46,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 
-public class FeedCategoriesFragment extends Fragment implements OnItemClickListener, OnSharedPreferenceChangeListener {
+public class FeedCategoriesFragment extends Fragment implements OnItemClickListener, OnSharedPreferenceChangeListener, OnRefreshListener {
 	private final String TAG = this.getClass().getSimpleName();
 	private SharedPreferences m_prefs;
 	private FeedCategoryListAdapter m_adapter;
@@ -122,6 +124,15 @@ public class FeedCategoriesFragment extends Fragment implements OnItemClickListe
 				FeedCategory cat = getCategoryAtPosition(info.position);
 				if (cat != null) {
 					m_activity.onCatSelected(cat, false);
+					//cf.setSelectedCategory(cat);
+				}
+			}
+			return true;
+		case R.id.create_shortcut:
+			if (true) {
+				FeedCategory cat = getCategoryAtPosition(info.position);
+				if (cat != null) {
+					m_activity.createCategoryShortcut(cat);
 					//cf.setSelectedCategory(cat);
 				}
 			}
@@ -207,6 +218,8 @@ public class FeedCategoriesFragment extends Fragment implements OnItemClickListe
 		list.setOnItemClickListener(this);
 		registerForContextMenu(list);
 		
+		m_activity.m_pullToRefreshAttacher.addRefreshableView(list, this);
+		
 		return view; 
 	}
 	
@@ -250,7 +263,6 @@ public class FeedCategoriesFragment extends Fragment implements OnItemClickListe
 		m_activity.setProgressBarIndeterminateVisibility(showProgress);
 	} */
 	
-	@SuppressWarnings("unchecked")
 	public void refresh(boolean background) {
 		CatsRequest req = new CatsRequest(getActivity().getApplicationContext());
 		
@@ -258,8 +270,8 @@ public class FeedCategoriesFragment extends Fragment implements OnItemClickListe
 		final boolean unreadOnly = m_activity.getUnreadOnly();
 		
 		if (sessionId != null) {
-			m_activity.setLoadingStatus(R.string.blank, true);
-			m_activity.setProgressBarVisibility(true);
+			//m_activity.setLoadingStatus(R.string.blank, true);
+			//m_activity.setProgressBarVisibility(true);
 			
 			@SuppressWarnings("serial")
 			HashMap<String,String> map = new HashMap<String,String>() {
@@ -293,6 +305,7 @@ public class FeedCategoriesFragment extends Fragment implements OnItemClickListe
 			if (isDetached()) return;
 			
 			m_activity.setProgressBarVisibility(false);
+			m_activity.m_pullToRefreshAttacher.setRefreshComplete();
 
 			if (getView() != null) {
 				ListView list = (ListView)getView().findViewById(R.id.feeds);
@@ -502,5 +515,10 @@ public class FeedCategoriesFragment extends Fragment implements OnItemClickListe
 	
 	public FeedCategory getSelectedCategory() {
 		return m_selectedCat;
+	}
+
+	@Override
+	public void onRefreshStarted(View view) {
+		refresh(false);
 	}	
 }

@@ -18,10 +18,9 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Typeface;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -31,7 +30,6 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -42,7 +40,6 @@ import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebView;
 import android.webkit.WebView.HitTestResult;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class ArticleFragment extends Fragment implements GestureDetector.OnDoubleTapListener {
 	private final String TAG = this.getClass().getSimpleName();
@@ -166,9 +163,9 @@ public class ArticleFragment extends Fragment implements GestureDetector.OnDoubl
 			
 			if (web != null) {
 				registerForContextMenu(web);
-
+				
 			    // prevent flicker in ics
-			    if (android.os.Build.VERSION.SDK_INT >= 11) {
+			    if (!m_prefs.getBoolean("webview_hardware_accel", true)) {
 			    	web.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 			    }
 
@@ -213,7 +210,9 @@ public class ArticleFragment extends Fragment implements GestureDetector.OnDoubl
 				} else {
 					cssOverride = "body { background : transparent; }";
 				}
-				web.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+				
+				// seriously?
+				web.setBackgroundColor(Color.argb(1, 0, 0, 0));
 				
 				String hexColor = String.format("#%06X", (0xFFFFFF & tv.data));
 			    cssOverride += " a:link {color: "+hexColor+";} a:visited { color: "+hexColor+";}";
@@ -285,7 +284,7 @@ public class ArticleFragment extends Fragment implements GestureDetector.OnDoubl
 					}
 				}
 				
-				content += "<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></body></html>";
+				content += "</body></html>";
 					
 				try {
 					String baseUrl = null;

@@ -24,7 +24,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import com.google.gson.JsonElement;
-import com.viewpagerindicator.TitlePageIndicator;
 import com.viewpagerindicator.UnderlinePageIndicator;
 
 public class ArticlePager extends Fragment {
@@ -130,7 +129,7 @@ public class ArticlePager extends Fragment {
 					
 					//Log.d(TAG, "Page #" + position + "/" + m_adapter.getCount());
 					
-					if ((m_activity.isSmallScreen() || m_activity.isPortrait()) && position == m_adapter.getCount() - 5) {
+					if ((m_activity.isSmallScreen() || m_activity.isPortrait()) && position == m_adapter.getCount() - 15) {
 						Log.d(TAG, "loading more articles...");
 						refresh(true);
 					}
@@ -141,17 +140,18 @@ public class ArticlePager extends Fragment {
 		return view;
 	}
 	
-	@SuppressWarnings({ "unchecked", "serial" }) 
+	@SuppressWarnings({ "serial" }) 
 	protected void refresh(boolean append) {
 		m_activity.setLoadingStatus(R.string.blank, true);
 
 		m_activity.setProgressBarVisibility(true);
+		m_activity.m_pullToRefreshAttacher.setRefreshing(true);
 		
 		if (!m_feed.equals(GlobalState.getInstance().m_activeFeed)) {
 			append = false;
 		}
 		
-		HeadlinesRequest req = new HeadlinesRequest(getActivity().getApplicationContext(), m_activity) {
+		HeadlinesRequest req = new HeadlinesRequest(getActivity().getApplicationContext(), m_activity, m_feed) {
 			@Override
 			protected void onProgressUpdate(Integer... progress) {
 				m_activity.setProgress(progress[0] / progress[1] * 10000);
@@ -162,6 +162,7 @@ public class ArticlePager extends Fragment {
 				if (isDetached()) return;
 				
 				m_activity.setProgressBarVisibility(false);
+				m_activity.m_pullToRefreshAttacher.setRefreshComplete();
 
 				super.onPostExecute(result);
 				

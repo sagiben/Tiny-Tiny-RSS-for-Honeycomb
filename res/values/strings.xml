@@ -197,4 +197,11 @@
     <string name="pref_headline_font_size">Headline text size</string>
     <string name="context_confirm_catchup">Mark all articles in %1$s as read?</string>
     <string name="theme_system">Device Default</string>
+    <string name="accel_webview_summary">Disable if you see flicker or visual glitches.</string>
+    <string name="accel_webview_title">Accelerate web views</string>
+    <string name="place_shortcut">Place shortcut</string>
+    <string name="shortcut_has_been_placed_on_the_home_screen">Shortcut has been placed on the home screen</string>
+    <string name="download_articles_and_go_offline">Download articles and go offline</string>
+    <string name="tasker_save_and_close">Save and close</string>
+    <string name="synchronize_read_articles_and_go_online">Synchronize read articles and go online</string>
 </resources>
