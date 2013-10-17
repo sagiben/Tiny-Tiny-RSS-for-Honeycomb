@@ -72,7 +72,7 @@
         <item name="unreadSelectedCounterBackground">@drawable/counter_background_dark</item>
 	</style>
 
-	<style name="SystemTheme" parent="Theme.Sherlock.DeviceDefault">
+	<style name="SystemTheme" parent="Theme.Sherlock.Light">
 	    <item name="smallScreenBackground">@android:color/transparent</item>
 		<item name="ttrssHorizontalDivider">@android:drawable/divider_horizontal_dark</item>
 		<item name="feedlistBackground">@android:color/transparent</item>
