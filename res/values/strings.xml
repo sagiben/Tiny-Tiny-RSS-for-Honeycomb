@@ -152,8 +152,8 @@
     <string name="prefs_fullscreen_mode">Fullscreen mode</string>
     <string name="reading">Reading</string>
     <string name="theme_dark_gray">Dark gray</string>
-    <string name="offline_articles_to_download">Number of articles to download</string>
-    <string name="offline_articles_to_download_long">Number of articles to download for Offline mode (newest first).</string>
+    <string name="offline_articles_to_download">Amount of articles to download</string>
+    <string name="offline_articles_to_download_long">How many articles to download for offline mode (newest first).</string>
     <string name="pref_headlines_show_content_long">Show content previews in headlines list</string>
     <string name="pref_headlines_show_content">Preview article content</string>
     <string name="api_too_low">This action requires newer version of Tiny Tiny RSS</string>
@@ -184,7 +184,7 @@
     <string name="headlines_unread">Unread</string>
     <string name="article_img_open">Open image</string>
     <string name="article_img_share">Share image</string>
-    <string name="requires_api5">Requires version 1.7.6</string>
+    <string name="requires_api5">Requires tt-rss 1.7.6</string>
     <string name="labels">Labels</string>
     <string name="article_img_view_caption">View Caption</string>
     <string name="light_theme_is_not_supported_on_honeycomb">Light theme is not supported on Honeycomb</string>
@@ -198,10 +198,12 @@
     <string name="context_confirm_catchup">Mark all articles in %1$s as read?</string>
     <string name="theme_system">Device Default</string>
     <string name="accel_webview_summary">Disable if you see flicker or visual glitches.</string>
-    <string name="accel_webview_title">Accelerate web views</string>
+    <string name="accel_webview_title">Accelerate web views (3.0+)</string>
     <string name="place_shortcut">Place shortcut</string>
     <string name="shortcut_has_been_placed_on_the_home_screen">Shortcut has been placed on the home screen</string>
     <string name="download_articles_and_go_offline">Download articles and go offline</string>
     <string name="tasker_save_and_close">Save and close</string>
     <string name="synchronize_read_articles_and_go_online">Synchronize read articles and go online</string>
+    <string name="prefs_compatible_article_layout">Compatible article layout</string>
+    <string name="prefs_compatible_layout_summary">Enable if you see glitches in article content</string>
 </resources>
