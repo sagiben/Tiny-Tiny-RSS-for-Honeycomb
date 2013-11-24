@@ -29,21 +29,19 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
-import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebView;
 import android.webkit.WebView.HitTestResult;
 import android.widget.TextView;
 
-public class OfflineArticleFragment extends Fragment implements GestureDetector.OnDoubleTapListener {
+public class OfflineArticleFragment extends Fragment {
 	private final String TAG = this.getClass().getSimpleName();
 
 	private SharedPreferences m_prefs;
@@ -51,7 +49,6 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 	private boolean m_isCat = false; // FIXME use
 	private Cursor m_cursor;
 	private OfflineActivity m_activity;
-	private GestureDetector m_detector;
 	
 	public void initialize(int articleId) {
 		m_articleId = articleId;
@@ -175,11 +172,36 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 				comments.setVisibility(View.GONE);
 			}
 			
-			WebView web = (WebView)view.findViewById(R.id.content);
+			TextView note = (TextView)view.findViewById(R.id.note);
+			
+			if (note != null) {
+				note.setVisibility(View.GONE);
+			}
+			
+			final WebView web = (WebView)view.findViewById(R.id.content);
 			
 			if (web != null) {
 				
-				registerForContextMenu(web);
+				web.setOnLongClickListener(new View.OnLongClickListener() {					
+					@Override
+					public boolean onLongClick(View v) {
+						HitTestResult result = ((WebView)v).getHitTestResult();
+
+						if (result != null && (result.getType() == HitTestResult.IMAGE_TYPE || result.getType() == HitTestResult.SRC_IMAGE_ANCHOR_TYPE)) {
+							registerForContextMenu(web);
+							m_activity.openContextMenu(web);
+							unregisterForContextMenu(web);
+							return true;
+						} else {
+							if (m_activity.isCompatMode()) {
+								KeyEvent shiftPressEvent = new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_SHIFT_LEFT, 0, 0);
+								shiftPressEvent.dispatch(web);
+							}
+							
+							return false;
+						}
+					}
+				});
 				
 				web.setWebChromeClient(new WebChromeClient() {					
 					@Override
@@ -191,31 +213,18 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 	                }
 				});
 				
-				web.setOnTouchListener(new View.OnTouchListener() {
-					@Override
-					public boolean onTouch(View v, MotionEvent event) {
-						return m_detector.onTouchEvent(event);
-					}
-				});
-				
 				String content;
 				String cssOverride = "";
 				
 				WebSettings ws = web.getSettings();
-				ws.setSupportZoom(true);
-				ws.setBuiltInZoomControls(true);
-				
-				if (!m_activity.isCompatMode())
-					ws.setDisplayZoomControls(false);
-				
-				web.getSettings().setLayoutAlgorithm(LayoutAlgorithm.SINGLE_COLUMN);
+				ws.setSupportZoom(false);
 
 				TypedValue tv = new TypedValue();				
 			    getActivity().getTheme().resolveAttribute(R.attr.linkColor, tv, true);
 			    
 			    // prevent flicker in ics
 			    if (!m_prefs.getBoolean("webview_hardware_accel", true) || useTitleWebView) {
-			    	if (android.os.Build.VERSION.SDK_INT >= 11) {
+			    	if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
 			    		web.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 			    	}
 			    }
@@ -230,7 +239,7 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 					cssOverride = "body { background : transparent; }";
 				}
 
-				if (useTitleWebView || android.os.Build.VERSION.SDK_INT < 11) {
+				if (useTitleWebView || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
 					web.setBackgroundColor(Color.TRANSPARENT);
 				} else {
 					// seriously?
@@ -268,32 +277,21 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 					articleContent = doc.toString();
 				}
 				
-				String align = m_prefs.getBoolean("justify_article_text", true) ? "text-align : justified" : "";
-				
-				switch (Integer.parseInt(m_prefs.getString("font_size", "0"))) {
-				case 0:
-					cssOverride += "body { "+align+"; font-size : 14px; } ";
-					break;
-				case 1:
-					cssOverride += "body { "+align+"; font-size : 18px; } ";
-					break;
-				case 2:
-					cssOverride += "body { "+align+"; font-size : 21px; } ";
-					break;		
+				if (m_prefs.getBoolean("justify_article_text", true)) {
+					cssOverride += "body { text-align : justify; } ";
 				}
 				
-				if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
-					cssOverride += "img { max-width : 99%; }";
-				}
+				ws.setDefaultFontSize(Integer.parseInt(m_prefs.getString("article_font_size_sp", "16")));
 				
 				content = 
 					"<html>" +
 					"<head>" +
 					"<meta content=\"text/html; charset=utf-8\" http-equiv=\"content-type\">" +
+					"<meta name=\"viewport\" content=\"width=device-width, user-scalable=no\" />" +
 					"<style type=\"text/css\">" +
-					"body { padding : 0px; margin : 0px; }" +
+					"body { padding : 0px; margin : 0px; line-height : 120%; }" +
 					cssOverride +
-					"body { line-height : 120%; }" +
+					"img { max-width : 100%; width : auto; height : auto; }" +
 					"</style>" +
 					"</head>" +
 					"<body>" + articleContent;
@@ -379,63 +377,5 @@ public class OfflineArticleFragment extends Fragment implements GestureDetector.
 
 		m_activity = (OfflineActivity) activity;
 		
-		m_detector = new GestureDetector(m_activity, new GestureDetector.OnGestureListener() {			
-			@Override
-			public boolean onSingleTapUp(MotionEvent e) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-			
-			@Override
-			public void onShowPress(MotionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
-					float distanceY) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-			
-			@Override
-			public void onLongPress(MotionEvent e) {			
-				m_activity.openContextMenu(getView());		
-			}
-			
-			@Override
-			public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-					float velocityY) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-			
-			@Override
-			public boolean onDown(MotionEvent e) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-		});
-		
-		m_detector.setOnDoubleTapListener(this);
-	}
-
-	@Override
-	public boolean onDoubleTap(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onDoubleTapEvent(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onSingleTapConfirmed(MotionEvent e) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 }
