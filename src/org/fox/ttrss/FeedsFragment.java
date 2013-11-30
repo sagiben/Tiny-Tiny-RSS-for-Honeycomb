@@ -159,6 +159,35 @@ public class FeedsFragment extends Fragment implements OnItemClickListener, OnSh
 				}
 			}
 			return true;
+		case R.id.unsubscribe_feed:
+			if (true) {
+				final Feed feed = getFeedAtPosition(info.position);
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						m_activity)
+						.setMessage(getString(R.string.unsubscribe_from_prompt, feed.title))
+						.setPositiveButton(R.string.unsubscribe,
+								new Dialog.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int which) {
+
+										m_activity.unsubscribeFeed(feed);											
+										
+									}
+								})
+						.setNegativeButton(R.string.dialog_cancel,
+								new Dialog.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int which) {
+
+									}
+								});
+
+				AlertDialog dlg = builder.create();
+				dlg.show();	
+			}			
+			
+			return true;
 		case R.id.create_shortcut:
 			if (true) {
 				Feed feed = getFeedAtPosition(info.position);
@@ -227,7 +256,11 @@ public class FeedsFragment extends Fragment implements OnItemClickListener, OnSh
 		if (!feed.is_cat) {
 			menu.findItem(R.id.browse_feeds).setVisible(false);
 		}
-		
+
+		if (feed.id <= 0) {
+			menu.findItem(R.id.unsubscribe_feed).setVisible(false);
+		}
+
 		super.onCreateContextMenu(menu, v, menuInfo);		
 		
 	}

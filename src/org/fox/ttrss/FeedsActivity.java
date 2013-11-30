@@ -2,6 +2,7 @@ package org.fox.ttrss;
 
 
 import java.util.Date;
+import java.util.HashMap;
 
 import org.fox.ttrss.types.Article;
 import org.fox.ttrss.types.ArticleList;
@@ -25,6 +26,7 @@ import android.util.Log;
 import android.widget.LinearLayout;
 
 import com.actionbarsherlock.view.MenuItem;
+import com.google.gson.JsonElement;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 public class FeedsActivity extends OnlineActivity implements HeadlinesEventListener {
@@ -188,6 +190,8 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 				
 				m_menu.findItem(R.id.update_headlines).setVisible(false);
 			}
+			
+			m_menu.findItem(R.id.headlines_toggle_sidebar).setVisible(false);
 			
 			MenuItem item = m_menu.findItem(R.id.show_feeds);
 
@@ -455,5 +459,25 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 	
 	public void createCategoryShortcut(FeedCategory cat) {
 		createFeedShortcut(new Feed(cat.id, cat.title, true));
+	}
+
+	public void unsubscribeFeed(final Feed feed) {
+		ApiRequest req = new ApiRequest(getApplicationContext()) {
+			protected void onPostExecute(JsonElement result) {
+				refresh();
+			}
+		};
+
+		@SuppressWarnings("serial")
+		HashMap<String, String> map = new HashMap<String, String>() {
+			{
+				put("sid", getSessionId());
+				put("op", "unsubscribeFeed");
+				put("feed_id", String.valueOf(feed.id));
+			}
+		};
+		
+		req.execute(map);
+
 	}
 }
