@@ -9,6 +9,7 @@ import java.util.Date;
 
 import org.fox.ttrss.R;
 import org.fox.ttrss.util.ImageCacheService;
+import org.fox.ttrss.util.TypefaceCache;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,6 +21,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -131,6 +133,30 @@ public class OfflineArticleFragment extends Fragment {
 		m_cursor.moveToFirst();
 		
 		if (m_cursor.isFirst()) {
+			if (!useTitleWebView) {
+				View scroll = view.findViewById(R.id.article_scrollview);
+
+				if (scroll != null) {
+					final float scale = getResources().getDisplayMetrics().density;
+					
+					if (m_activity.isSmallScreen()) {
+						scroll.setPadding((int)(8 * scale + 0.5f),
+								(int)(5 * scale + 0.5f),
+								(int)(8 * scale + 0.5f),
+								0);
+					} else {
+						scroll.setPadding((int)(25 * scale + 0.5f),
+								(int)(10 * scale + 0.5f),
+								(int)(25 * scale + 0.5f),
+								0);
+
+					}
+					
+				}
+			}
+			
+			int articleFontSize = Integer.parseInt(m_prefs.getString("article_font_size_sp", "16"));
+			int articleSmallFontSize = Math.max(10, Math.min(18, articleFontSize - 2));
 			
 			TextView title = (TextView)view.findViewById(R.id.title);
 
@@ -138,13 +164,25 @@ public class OfflineArticleFragment extends Fragment {
 			
 			if (title != null) {
 				
+				if (m_prefs.getBoolean("enable_condensed_fonts", false)) {
+					Typeface tf = TypefaceCache.get(m_activity, "sans-serif-condensed", Typeface.NORMAL);
+					
+					if (tf != null && !tf.equals(title.getTypeface())) {
+						title.setTypeface(tf);
+					}
+					
+					title.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.min(21, articleFontSize + 5));
+				} else {
+					title.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.min(21, articleFontSize + 3));
+				}
+				
 				String titleStr;
 				
 				if (m_cursor.getString(m_cursor.getColumnIndex("title")).length() > 200)
 					titleStr = m_cursor.getString(m_cursor.getColumnIndex("title")).substring(0, 200) + "...";
 				else
 					titleStr = m_cursor.getString(m_cursor.getColumnIndex("title"));
-				
+								
 				title.setText(titleStr);
 				//title.setPaintFlags(title.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
 				title.setOnClickListener(new OnClickListener() {					
@@ -281,7 +319,7 @@ public class OfflineArticleFragment extends Fragment {
 					cssOverride += "body { text-align : justify; } ";
 				}
 				
-				ws.setDefaultFontSize(Integer.parseInt(m_prefs.getString("article_font_size_sp", "16")));
+				ws.setDefaultFontSize(articleFontSize);
 				
 				content = 
 					"<html>" +
@@ -289,7 +327,7 @@ public class OfflineArticleFragment extends Fragment {
 					"<meta content=\"text/html; charset=utf-8\" http-equiv=\"content-type\">" +
 					"<meta name=\"viewport\" content=\"width=device-width, user-scalable=no\" />" +
 					"<style type=\"text/css\">" +
-					"body { padding : 0px; margin : 0px; line-height : 120%; }" +
+					"body { padding : 0px; margin : 0px; line-height : 130%; }" +
 					cssOverride +
 					"img { max-width : 100%; width : auto; height : auto; }" +
 					"</style>" +
@@ -323,33 +361,52 @@ public class OfflineArticleFragment extends Fragment {
 			TextView dv = (TextView)view.findViewById(R.id.date);
 			
 			if (dv != null) {
+				dv.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
+				
 				Date d = new Date(m_cursor.getInt(m_cursor.getColumnIndex("updated")) * 1000L);
 				DateFormat df = new SimpleDateFormat("MMM dd, HH:mm");
 				dv.setText(df.format(d));
 			}
+
+			TextView author = (TextView)view.findViewById(R.id.author);
+
+			boolean hasAuthor = false;
 			
+			if (author != null) {
+				author.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
+				
+				int authorIndex = m_cursor.getColumnIndex("author");
+				if (authorIndex >= 0)
+					author.setText(m_cursor.getString(authorIndex));
+				else
+					author.setVisibility(View.GONE);
+				
+				hasAuthor = true;
+			}
+
 			TextView tagv = (TextView)view.findViewById(R.id.tags);
 						
 			if (tagv != null) {
+				tagv.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
+
 				int feedTitleIndex = m_cursor.getColumnIndex("feed_title");
 
-				if (feedTitleIndex != -1 && m_isCat) {
-					tagv.setText(m_cursor.getString(feedTitleIndex));
+				if (feedTitleIndex != -1 /* && m_isCat */) {
+					String fTitle = m_cursor.getString(feedTitleIndex);
+					
+					int authorIndex = m_cursor.getColumnIndex("author");
+					
+					if (!hasAuthor && authorIndex >= 0) {
+						fTitle += " (" + getString(R.string.author_formatted, m_cursor.getString(authorIndex)) + ")";
+					}
+					
+					tagv.setText(fTitle);
 				} else {				
 					String tagsStr = m_cursor.getString(m_cursor.getColumnIndex("tags"));
 					tagv.setText(tagsStr);
 				}
 			}	
 			
-			TextView author = (TextView)view.findViewById(R.id.author);
-
-			if (author != null) {
-				int authorIndex = m_cursor.getColumnIndex("author");
-				if (authorIndex >= 0)
-					author.setText(m_cursor.getString(authorIndex));
-				else
-					author.setVisibility(View.GONE);
-			}
 		} 
 		
 		return view;    	

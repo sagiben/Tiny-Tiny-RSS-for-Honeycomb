@@ -53,15 +53,17 @@
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:singleLine="true"
-                android:text="Example Feed"
+                android:fontFamily="sans-serif-light"
+                android:text="Example Feed"                
                 android:textColor="?headlineSecondaryTextColor"
                 android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/date"
-                android:layout_width="wrap_content"
+                android:layout_width="wrap_content"                
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:fontFamily="sans-serif-light"
                 android:gravity="right|center_vertical"
                 android:text="Jan 01, 12:00"
                 android:textColor="?headlineSecondaryTextColor"
@@ -73,6 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingTop="3dp"
+            android:lineSpacingExtra="2sp"
             android:text="Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
             android:textColor="?headlineExcerptTextColor"
             android:textSize="13sp" />
@@ -98,6 +101,8 @@
                 android:gravity="center_vertical"
                 android:singleLine="true"
                 android:text="by Author"
+                android:fontFamily="sans-serif-light"
+                android:textStyle="italic"
                 android:textColor="?headlineSecondaryTextColor"
                 android:textSize="12sp" />
 

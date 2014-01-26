@@ -8,6 +8,7 @@ import java.util.TimeZone;
 import org.fox.ttrss.CommonActivity;
 import org.fox.ttrss.GlobalState;
 import org.fox.ttrss.R;
+import org.fox.ttrss.util.TypefaceCache;
 import org.jsoup.Jsoup;
 
 import android.app.Activity;
@@ -17,6 +18,7 @@ import android.content.res.Resources.Theme;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteStatement;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -462,6 +464,9 @@ public class OfflineHeadlinesFragment extends Fragment implements OnItemClickLis
 			Cursor article = (Cursor)getItem(position);
 			final int articleId = article.getInt(0);
 			
+			int headlineFontSize = Integer.parseInt(m_prefs.getString("headlines_font_size_sp", "13"));
+			int headlineSmallFontSize = Math.max(10, Math.min(18, headlineFontSize - 2));
+			
 			if (v == null) {
 				int layoutId = R.layout.headlines_row;
 				
@@ -490,8 +495,21 @@ public class OfflineHeadlinesFragment extends Fragment implements OnItemClickLis
 			TextView tt = (TextView)v.findViewById(R.id.title);
 
 			if (tt != null) {
+				
 				tt.setText(Html.fromHtml(article.getString(article.getColumnIndex("title"))));
 
+				if (m_prefs.getBoolean("enable_condensed_fonts", false)) {
+					Typeface tf = TypefaceCache.get(m_activity, "sans-serif-condensed", article.getInt(article.getColumnIndex("unread")) == 1 ? Typeface.BOLD : Typeface.NORMAL);
+					
+					if (tf != null && !tf.equals(tt.getTypeface())) {
+						tt.setTypeface(tf);
+					}
+					
+					tt.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.min(21, headlineFontSize + 5));
+				} else {
+					tt.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.min(21, headlineFontSize + 3));	
+				}
+				
 				int scoreIndex = article.getColumnIndex("score");
 				if (scoreIndex >= 0)
 					adjustTitleTextView(article.getInt(scoreIndex), tt, position);
@@ -508,6 +526,7 @@ public class OfflineHeadlinesFragment extends Fragment implements OnItemClickLis
 					feedTitle = feedTitle.substring(0, 20) + "...";
 				
 				if (feedTitle.length() > 0) {
+					ft.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineSmallFontSize);
 					ft.setText(feedTitle);					
 				} else {
 					ft.setVisibility(View.GONE);
@@ -569,7 +588,7 @@ public class OfflineHeadlinesFragment extends Fragment implements OnItemClickLis
 					if (excerpt.length() > CommonActivity.EXCERPT_MAX_SIZE)
 						excerpt = excerpt.substring(0, CommonActivity.EXCERPT_MAX_SIZE) + "...";
 					
-					te.setTextSize(TypedValue.COMPLEX_UNIT_SP, Integer.parseInt(m_prefs.getString("headlines_font_size_sp", "13")));
+					te.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineFontSize);
 					te.setText(excerpt);
 				}
 			}       	
@@ -581,7 +600,9 @@ public class OfflineHeadlinesFragment extends Fragment implements OnItemClickLis
 				if (authorIndex >= 0) {
 					String author = article.getString(authorIndex);
 					
-					if (author != null && author.length() > 0)
+					ta.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineSmallFontSize);					
+					
+					if (author != null && author.length() > 0) 
 						ta.setText(getString(R.string.author_formatted, author));
 					else
 						ta.setText("");
@@ -597,6 +618,8 @@ public class OfflineHeadlinesFragment extends Fragment implements OnItemClickLis
 			TextView dv = (TextView) v.findViewById(R.id.date);
 			
 			if (dv != null) {
+				dv.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineSmallFontSize);
+				
 				Date d = new Date((long)article.getInt(article.getColumnIndex("updated")) * 1000);
 				DateFormat df = new SimpleDateFormat("MMM dd, HH:mm");
 				df.setTimeZone(TimeZone.getDefault());

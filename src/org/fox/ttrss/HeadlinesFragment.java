@@ -11,6 +11,7 @@ import org.fox.ttrss.types.Article;
 import org.fox.ttrss.types.ArticleList;
 import org.fox.ttrss.types.Feed;
 import org.fox.ttrss.util.HeadlinesRequest;
+import org.fox.ttrss.util.TypefaceCache;
 import org.jsoup.Jsoup;
 
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
@@ -21,6 +22,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources.Theme;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -229,13 +231,13 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 					ArticleList articles = getAllArticles();
 					ArticleList tmp = new ArticleList();
 					for (Article a : articles) {
-						if (a.unread) {
+						if (article.id == a.id)
+							break;
 
+						if (a.unread) {
 							a.unread = false;
 							tmp.add(a);
 						}
-						if (article.id == a.id)
-							break;
 					}
 					if (tmp.size() > 0) {
 						m_activity.toggleArticlesUnread(tmp);
@@ -658,6 +660,9 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 
 			final Article article = items.get(position);
 			
+			int headlineFontSize = Integer.parseInt(m_prefs.getString("headlines_font_size_sp", "13"));
+			int headlineSmallFontSize = Math.max(10, Math.min(18, headlineFontSize - 2));
+			
 			if (v == null) {
 				int layoutId = R.layout.headlines_row;
 				
@@ -685,20 +690,34 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 
 			TextView tt = (TextView)v.findViewById(R.id.title);
 
-			if (tt != null) {
+			if (tt != null) {				
 				tt.setText(Html.fromHtml(article.title));
+				
+				if (m_prefs.getBoolean("enable_condensed_fonts", false)) {
+					Typeface tf = TypefaceCache.get(m_activity, "sans-serif-condensed", article.unread ? Typeface.BOLD : Typeface.NORMAL);
+					
+					if (tf != null && !tf.equals(tt.getTypeface())) {
+						tt.setTypeface(tf);
+					}
+					
+					tt.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.min(21, headlineFontSize + 5));
+				} else {
+					tt.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.min(21, headlineFontSize + 3));
+				}
+				
 				adjustTitleTextView(article.score, tt, position);
 			}
 
 			TextView ft = (TextView)v.findViewById(R.id.feed_title);
 			
-			if (ft != null) {
+			if (ft != null) {				
 				if (article.feed_title != null && (m_feed.is_cat || m_feed.id < 0)) {
 					
 					/* if (article.feed_title.length() > 20)
 						ft.setText(article.feed_title.substring(0, 20) + "...");
 					else */
 					
+					ft.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineSmallFontSize);
 					ft.setText(article.feed_title);
 					
 				} else {
@@ -754,7 +773,7 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 					if (excerpt.length() > CommonActivity.EXCERPT_MAX_SIZE)
 						excerpt = excerpt.substring(0, CommonActivity.EXCERPT_MAX_SIZE) + "...";
 					
-					te.setTextSize(TypedValue.COMPLEX_UNIT_SP, Integer.parseInt(m_prefs.getString("headlines_font_size_sp", "13")));
+					te.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineFontSize);
 					te.setText(excerpt);
 				}
 			}       	
@@ -763,12 +782,15 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 			
 			TextView author = (TextView)v.findViewById(R.id.author);
 			
-			if (author != null) 
+			if (author != null) {
+				author.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineSmallFontSize);
+
 				if (articleAuthor.length() > 0) {
 					author.setText(getString(R.string.author_formatted, articleAuthor));
 				} else {
 					author.setText("");
 				}
+			}
 			
 			/* ImageView separator = (ImageView)v.findViewById(R.id.headlines_separator);
 			
@@ -779,6 +801,8 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 			TextView dv = (TextView) v.findViewById(R.id.date);
 			
 			if (dv != null) {
+				dv.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineSmallFontSize);
+				
 				Date d = new Date((long)article.updated * 1000);
 				DateFormat df = new SimpleDateFormat("MMM dd, HH:mm");
 				df.setTimeZone(TimeZone.getDefault());

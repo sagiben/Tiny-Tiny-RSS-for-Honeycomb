@@ -9,6 +9,7 @@ import java.util.Date;
 
 import org.fox.ttrss.types.Article;
 import org.fox.ttrss.types.Attachment;
+import org.fox.ttrss.util.TypefaceCache;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,6 +20,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -94,9 +96,46 @@ public class ArticleFragment extends Fragment  {
 		
 		if (m_article != null) {
 			
-			TextView title = (TextView)view.findViewById(R.id.title);
+			if (!useTitleWebView) {
+				View scroll = view.findViewById(R.id.article_scrollview);
+
+				if (scroll != null) {
+					final float scale = getResources().getDisplayMetrics().density;
+					
+					if (m_activity.isSmallScreen()) {
+						scroll.setPadding((int)(8 * scale + 0.5f),
+								(int)(5 * scale + 0.5f),
+								(int)(8 * scale + 0.5f),
+								0);
+					} else {
+						scroll.setPadding((int)(25 * scale + 0.5f),
+								(int)(10 * scale + 0.5f),
+								(int)(25 * scale + 0.5f),
+								0);
+
+					}
+					
+				}
+			}
 			
+			int articleFontSize = Integer.parseInt(m_prefs.getString("article_font_size_sp", "16"));
+			int articleSmallFontSize = Math.max(10, Math.min(18, articleFontSize - 2));
+			
+			TextView title = (TextView)view.findViewById(R.id.title);
+						
 			if (title != null) {
+				
+				if (m_prefs.getBoolean("enable_condensed_fonts", false)) {
+					Typeface tf = TypefaceCache.get(m_activity, "sans-serif-condensed", Typeface.NORMAL);
+					
+					if (tf != null && !tf.equals(title.getTypeface())) {
+						title.setTypeface(tf);
+					}
+					
+					title.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.min(21, articleFontSize + 5));
+				} else {
+					title.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.min(21, articleFontSize + 3));
+				}
 				
 				String titleStr;
 				
@@ -104,8 +143,7 @@ public class ArticleFragment extends Fragment  {
 					titleStr = m_article.title.substring(0, 200) + "...";
 				else
 					titleStr = m_article.title;
-				
-				
+								
 				title.setText(Html.fromHtml(titleStr));
 				//title.setPaintFlags(title.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
 				title.setOnClickListener(new OnClickListener() {					
@@ -131,6 +169,8 @@ public class ArticleFragment extends Fragment  {
 			
 			if (comments != null) {
 				if (m_activity.getApiLevel() >= 4 && m_article.comments_count > 0) {
+					comments.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
+					
 					String commentsTitle = getString(R.string.article_comments, m_article.comments_count);
 					comments.setText(commentsTitle);
 					//comments.setPaintFlags(title.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
@@ -161,6 +201,7 @@ public class ArticleFragment extends Fragment  {
 			
 			if (note != null) {
 				if (m_article.note != null && !"".equals(m_article.note)) {
+					note.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
 					note.setText(m_article.note);					
 				} else {
 					note.setVisibility(View.GONE);
@@ -259,7 +300,7 @@ public class ArticleFragment extends Fragment  {
 					cssOverride += "body { text-align : justify; } ";
 				}
 				
-				ws.setDefaultFontSize(Integer.parseInt(m_prefs.getString("article_font_size_sp", "16")));
+				ws.setDefaultFontSize(articleFontSize);
 				
 				content = 
 					"<html>" +
@@ -267,7 +308,7 @@ public class ArticleFragment extends Fragment  {
 					"<meta content=\"text/html; charset=utf-8\" http-equiv=\"content-type\">" +
 					"<meta name=\"viewport\" content=\"width=device-width, user-scalable=no\" />" +
 					"<style type=\"text/css\">" +
-					"body { padding : 0px; margin : 0px; line-height : 120%; }" +
+					"body { padding : 0px; margin : 0px; line-height : 130%; }" +
 					"img { max-width : 100%; width : auto; height : auto; }" +
 					cssOverride +
 					"</style>" +
@@ -329,16 +370,41 @@ public class ArticleFragment extends Fragment  {
 			TextView dv = (TextView)view.findViewById(R.id.date);
 			
 			if (dv != null) {
+				dv.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
+				
 				Date d = new Date(m_article.updated * 1000L);
 				DateFormat df = new SimpleDateFormat("MMM dd, HH:mm");
 				dv.setText(df.format(d));
 			}
+
+			TextView author = (TextView)view.findViewById(R.id.author);
+
+			boolean hasAuthor = false;
 			
+			if (author != null) {
+				author.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
+				
+				if (m_article.author != null && m_article.author.length() > 0) {
+					author.setText(getString(R.string.author_formatted, m_article.author));				
+				} else {
+					author.setVisibility(View.GONE);
+				}
+				hasAuthor = true;
+			}
+
 			TextView tagv = (TextView)view.findViewById(R.id.tags);
 						
 			if (tagv != null) {
+				tagv.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
+				
 				if (m_article.feed_title != null) {
-					tagv.setText(m_article.feed_title);
+					String fTitle = m_article.feed_title;
+					
+					if (!hasAuthor && m_article.author != null && m_article.author.length() > 0) {
+						fTitle += " (" + getString(R.string.author_formatted, m_article.author) + ")";						
+					}
+					
+					tagv.setText(fTitle);
 				} else if (m_article.tags != null) {
 					String tagsStr = "";
 				
@@ -353,15 +419,6 @@ public class ArticleFragment extends Fragment  {
 				}
 			}
 			
-			TextView author = (TextView)view.findViewById(R.id.author);
-
-			if (author != null) {
-				if (m_article.author != null && m_article.author.length() > 0) {
-					author.setText(getString(R.string.author_formatted, m_article.author));				
-				} else {
-					author.setVisibility(View.GONE);
-				}
-			}
 		} 
 		
 		return view;    	
