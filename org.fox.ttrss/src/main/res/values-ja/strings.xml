@@ -149,14 +149,7 @@
     <string name="prefs_dim_status_bar">下部ソフトキーをぼかす</string>
     <string name="prefs_dim_status_bar_long">記事表示中は下部ソフトキーをぼかす</string>
     <string name="article_comments">%1$d 件のコメント</string>
-    <plurals name="trial_mode_prompt">
-        <item quantity="other">試用期間中。残り %1$d 日間。</item>
-    </plurals>
-    <string name="trial_purchase">フルバージョンを購入</string>
-    <string name="trial_expired">試用期限終了</string>
-    <string name="trial_expired_message">Tiny Tiny RSSを継続して使用する場合はTiny Tiny RSS Unlockerを購入してください。</string>
     <string name="theme_sepia">セピア</string>
-    <string name="trial_thanks">フルバージョン。あなたの支援に感謝します！</string>
     <string name="prefs_fullscreen_mode">フルスクリーンモード</string>
     <string name="reading">Reading</string>
     <string name="offline_articles_to_download">ダウンロードする記事数</string>

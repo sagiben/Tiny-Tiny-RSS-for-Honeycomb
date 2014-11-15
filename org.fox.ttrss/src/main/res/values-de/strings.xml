@@ -149,17 +149,7 @@
     <string name="prefs_dim_status_bar">Statusleiste abdunkeln</string>
     <string name="prefs_dim_status_bar_long">Statusleiste beim Lesen dunkler machen</string>
     <string name="article_comments">%1$d Kommentare</string>
-
-    <plurals name="trial_mode_prompt">
-        <item quantity="one">Testversion, noch ein Tag übrig.</item>
-        <item quantity="other">Testversion, %1$d Tage übrig.</item>
-    </plurals>
-
-    <string name="trial_purchase">Vollversion freischalten</string>
-    <string name="trial_expired">Testzeitraum abgelaufen</string>
-    <string name="trial_expired_message">Um Tiny Tiny RSS weiterhin nutzen zu können kaufen Sie bitte den Schlüssel.</string>
     <string name="theme_sepia">Sepia</string>
-    <string name="trial_thanks">Vollversion, Vielen Dank für die Unterstützung!</string>
     <string name="prefs_fullscreen_mode">Vollbild</string>
     <string name="reading">Lesen</string>
     <string name="offline_articles_to_download">Anzahl der Artikel</string>

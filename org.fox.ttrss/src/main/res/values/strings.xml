@@ -149,18 +149,8 @@
     <string name="prefs_dim_status_bar">Dim status bar</string>
     <string name="prefs_dim_status_bar_long">Dim status bar when reading</string>
     <string name="article_comments">%1$d comments</string>
-
-    <plurals name="trial_mode_prompt">
-        <item quantity="one">Trial mode, only one day left.</item>
-        <item quantity="other">Trial mode, %1$d days left.</item>
-    </plurals>
-
-    <string name="trial_purchase">Unlock full version</string>
-    <string name="trial_expired">Trial expired</string>
-    <string name="trial_expired_message">To continue using Tiny Tiny RSS please unlock the full version by purchasing the key.</string>
     <string name="theme_sepia">Sepia</string>
     <string name="theme_amber">Amber</string>
-    <string name="trial_thanks">Full version, thank you for support!</string>
     <string name="prefs_fullscreen_mode">Fullscreen mode</string>
     <string name="reading">Reading</string>
     <string name="offline_articles_to_download">Amount of articles to download</string>

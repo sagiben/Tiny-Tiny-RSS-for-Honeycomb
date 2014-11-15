@@ -157,8 +157,6 @@ public class FeedsActivity extends OnlineActivity implements HeadlinesEventListe
 
             m_feedIsSelected = true;
 
-			checkTrial(true);
-
 		} else { // savedInstanceState != null
 			//m_actionbarUpEnabled = savedInstanceState.getBoolean("actionbarUpEnabled");
 			//m_actionbarRevertDepth = savedInstanceState.getInt("actionbarRevertDepth");

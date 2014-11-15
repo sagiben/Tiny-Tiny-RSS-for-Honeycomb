@@ -164,14 +164,7 @@
     <string name="prefs_dim_status_bar">Przyciemnij pasek statusu</string>
     <string name="prefs_dim_status_bar_long">Przyciemnij pasek statusu podczas czytania</string>
     <string name="article_comments">%1$d komentarzy</string>
-    <plurals name="trial_mode_prompt">
-        <item quantity="other">Tryb wersji testowej, pozostało dni: %1$d.</item>
-    </plurals>
-    <string name="trial_purchase">Odblokuj pełną wersję</string>
-    <string name="trial_expired">Wersja testowa wygasła</string>
-    <string name="trial_expired_message">Aby nadal używać Tiny Tiny RSS odblokuj pełną wersję kupując klucz aktywacyjny.</string>
     <string name="theme_sepia">Sepia</string>
-    <string name="trial_thanks">Używasz pełnej wersji, dziękujemy za wsparcie!</string>
     <string name="prefs_fullscreen_mode">Tryb pełnoekranowy</string>
     <string name="reading">Czytanie</string>
     <string name="theme_dark_gray">Ciemny szary</string>

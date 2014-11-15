@@ -146,14 +146,7 @@
   <string name="prefs_dim_status_bar">Matný stavový proužek</string>
   <string name="prefs_dim_status_bar_long">Schová stavový proužek při čtení</string>
   <string name="article_comments">%1$d komentáře</string>
-  <plurals name="trial_mode_prompt">
-      <item quantity="other">Trial verze, %1$d dní zbývá.</item>
-  </plurals>
-  <string name="trial_purchase">Odemknout plnou verzi</string>
-  <string name="trial_expired">Trial verze vypršela</string>
-  <string name="trial_expired_message">Chcete-li pokračovat v používání aplikace Tiny Tiny RSS prosím odemkněte ji zakoupeným klíčem.</string>
   <string name="theme_sepia">Sépie</string>
-  <string name="trial_thanks">Plná verze, děkujeme za podporu!</string>
   <string name="prefs_fullscreen_mode">Celá obrazovka</string>
   <string name="reading">Čtení</string>
   <string name="theme_dark_gray">Tmavošedý</string>

@@ -141,11 +141,6 @@
                 android:title="@string/article_mark_read_above"/>
 
         </group>
-
-        <item
-            android:id="@+id/donate"
-            app:showAsAction=""
-            android:title="@string/trial_purchase"/>
     </group>
 
     <item

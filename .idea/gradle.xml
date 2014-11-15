@@ -7,9 +7,9 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/org.fox.ttrss" />
-            <option value="$PROJECT_DIR$/taskerlocaleapi" />
+            <option value="$USER_HOME$/Dropbox/sources/Tiny-Tiny-RSS-for-Honeycomb" />
+            <option value="$USER_HOME$/Dropbox/sources/Tiny-Tiny-RSS-for-Honeycomb/org.fox.ttrss" />
+            <option value="$USER_HOME$/Dropbox/sources/Tiny-Tiny-RSS-for-Honeycomb/taskerlocaleapi" />
           </set>
         </option>
       </GradleProjectSettings>
