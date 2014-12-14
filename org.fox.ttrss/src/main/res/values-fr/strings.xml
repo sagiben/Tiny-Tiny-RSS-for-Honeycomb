@@ -147,7 +147,9 @@
     <string name="offline_oldest_first">Afficher les plus anciens d\'abord</string>
     <string name="prefs_dim_status_bar">Assombrir la barre de statut</string>
     <string name="prefs_dim_status_bar_long">Assombrir la barre de satut pendant la lecture</string>
-    <string name="article_comments">%1$d commentaires</string>
+    <plurals name="article_comments">
+        <item quantity="other">%1$d commentaires</item>
+    </plurals>
     <string name="theme_sepia">Sepia</string>
     <string name="prefs_fullscreen_mode">Mode plein écran</string>
     <string name="reading">Lecture</string>

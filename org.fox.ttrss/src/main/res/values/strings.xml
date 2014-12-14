@@ -148,7 +148,10 @@
     <string name="offline_oldest_first">Show oldest articles first</string>
     <string name="prefs_dim_status_bar">Dim status bar</string>
     <string name="prefs_dim_status_bar_long">Dim status bar when reading</string>
-    <string name="article_comments">%1$d comments</string>
+    <plurals name="article_comments">
+        <item quantity="one">%1$d comment</item>
+        <item quantity="other">%1$d comments</item>
+    </plurals>
     <string name="theme_sepia">Sepia</string>
     <string name="theme_amber">Amber</string>
     <string name="prefs_fullscreen_mode">Fullscreen mode</string>

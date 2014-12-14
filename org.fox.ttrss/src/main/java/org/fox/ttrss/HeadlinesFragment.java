@@ -41,6 +41,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.google.gson.JsonElement;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -75,7 +77,7 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 
     public static final int HEADLINES_REQUEST_SIZE = 30;
 	public static final int HEADLINES_BUFFER_MAX = 500;
-	
+
 	private final String TAG = this.getClass().getSimpleName();
 	
 	private Feed m_feed;
@@ -536,8 +538,7 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 					skip == 0;
 
 			Log.d(TAG, "allowForceUpdate=" + allowForceUpdate + " userInitiated=" + userInitiated);
-					
-					
+
 			req.setOffset(skip);
 			
 			HashMap<String,String> map = new HashMap<String,String>() {
@@ -545,6 +546,8 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 					put("op", "getHeadlines");
 					put("sid", sessionId);
 					put("feed_id", String.valueOf(m_feed.id));
+                    put("show_excerpt", "true");
+                    put("excerpt_length", String.valueOf(CommonActivity.EXCERPT_MAX_LENGTH));
 					put("show_content", "true");
 					put("include_attachments", "true");
 					put("view_mode", m_activity.getViewMode());
@@ -552,6 +555,7 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 					put("offset", String.valueOf(0));
 					put("skip", String.valueOf(fskip));
 					put("include_nested", "true");
+                    put("has_sandbox", "true");
 					put("order_by", m_activity.getSortMode());
 					
 					if (isCat) put("is_cat", "true");
@@ -603,6 +607,8 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 		public ProgressBar flavorImageLoadingBar;
         public View flavorImageArrow;
         public View headlineFooter;
+        public ImageView textImage;
+        public ImageView textChecked;
     }
 	
 	private class ArticleListAdapter extends ArrayAdapter<Article> {
@@ -618,6 +624,9 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 		
 		private final Integer[] origTitleColors = new Integer[VIEW_COUNT];
 		private final int titleHighScoreUnreadColor;
+
+        private ColorGenerator m_colorGenerator = ColorGenerator.DEFAULT;
+        private TextDrawable.IBuilder m_drawableBuilder = TextDrawable.builder().round();
 
 		public ArticleListAdapter(Context context, int textViewResourceId, ArrayList<Article> items) {
 			super(context, textViewResourceId, items);
@@ -650,13 +659,27 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 			}			
 		}
 
+        private void updateTextCheckedState(HeadlineViewHolder holder, Article item) {
+            String tmp = item.title.length() > 0 ? item.title.substring(0, 1) : "?";
+
+            if (m_selectedArticles.contains(item)) {
+                holder.textImage.setImageDrawable(m_drawableBuilder.build(" ", 0xff616161));
+
+                holder.textChecked.setVisibility(View.VISIBLE);
+            } else {
+                holder.textImage.setImageDrawable(m_drawableBuilder.build(tmp, m_colorGenerator.getColor(item.title)));
+
+                holder.textChecked.setVisibility(View.GONE);
+            }
+        }
+
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 
 			View v = convertView;
 			
 			final Article article = items.get(position);
-			HeadlineViewHolder holder;
+			final HeadlineViewHolder holder;
 			
 			int headlineFontSize = Integer.parseInt(m_prefs.getString("headlines_font_size_sp", "13"));
 			int headlineSmallFontSize = Math.max(10, Math.min(18, headlineFontSize - 2));
@@ -698,6 +721,8 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
                 holder.flavorImageLoadingBar = (ProgressBar) v.findViewById(R.id.flavorImageLoadingBar);
                 holder.flavorImageArrow = v.findViewById(R.id.flavorImageArrow);
                 holder.headlineFooter = v.findViewById(R.id.headline_footer);
+                holder.textImage = (ImageView) v.findViewById(R.id.text_image);
+                holder.textChecked = (ImageView) v.findViewById(R.id.text_checked);
 				
 				v.setTag(holder);
 				
@@ -716,7 +741,31 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
                     }
                 });
             }
-			
+
+            if (holder.textImage != null) {
+                updateTextCheckedState(holder, article);
+
+                holder.textImage.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.d(TAG, "textImage : onclicked");
+
+                        if (!m_selectedArticles.contains(article)) {
+                            m_selectedArticles.add(article);
+                        } else {
+                            m_selectedArticles.remove(article);
+                        }
+
+                        updateTextCheckedState(holder, article);
+
+                        m_listener.onArticleListSelectionChange(m_selectedArticles);
+
+                        Log.d(TAG, "num selected: " + m_selectedArticles.size());
+                    }
+                });
+
+            }
+
 			if (holder.titleView != null) {				
 				holder.titleView.setText(Html.fromHtml(article.title));
 				
@@ -735,15 +784,8 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 				adjustTitleTextView(article.score, holder.titleView, position);
 			}
 
-			
-			
 			if (holder.feedTitleView != null) {				
 				if (article.feed_title != null && (m_feed.is_cat || m_feed.id < 0)) {
-					
-					/* if (article.feed_title.length() > 20)
-						ft.setText(article.feed_title.substring(0, 20) + "...");
-					else */
-					
 					holder.feedTitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineSmallFontSize);
 					holder.feedTitleView.setText(article.feed_title);
 					
@@ -787,14 +829,31 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 				});
 			}
 
-			String articleContent = article.content != null ? article.content : "";
+            String articleContent = article.content != null ? article.content : "";
 
-			if (holder.excerptView != null) {
+            String articleContentReduced = articleContent.length() > CommonActivity.EXCERPT_MAX_QUERY_LENGTH ?
+                    articleContent.substring(0, CommonActivity.EXCERPT_MAX_QUERY_LENGTH) : articleContent;
+
+            Document articleDoc = Jsoup.parse(articleContentReduced);
+
+            if (holder.excerptView != null) {
 				if (!m_prefs.getBoolean("headlines_show_content", true)) {
 					holder.excerptView.setVisibility(View.GONE);
 				} else {
-					String excerpt = Jsoup.parse(articleContent).text(); 
-					
+                    String excerpt;
+
+                    if (m_activity.getApiLevel() >= 11) {
+                        excerpt = article.excerpt != null ? article.excerpt : "";
+                        excerpt = excerpt.replace("&hellip;", "…");
+                        excerpt = excerpt.replace("]]>", "");
+                        excerpt = Jsoup.parse(excerpt).text();
+                    } else {
+                        excerpt = articleDoc.text();
+
+                        if (excerpt.length() > CommonActivity.EXCERPT_MAX_LENGTH)
+                            excerpt = excerpt.substring(0, CommonActivity.EXCERPT_MAX_LENGTH) + "…";
+                    }
+
 					holder.excerptView.setTextSize(TypedValue.COMPLEX_UNIT_SP, headlineFontSize);
 					holder.excerptView.setText(excerpt);
 				}
@@ -806,14 +865,10 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
                 if (holder.flavorImageView != null && showFlavorImage) {
                     holder.flavorImageArrow.setVisibility(View.GONE);
 
-                    Document doc = Jsoup.parse(articleContent);
-
                     boolean loadableImageFound = false;
 
-                    if (doc != null) {
-                        //Element img = doc.select("img").first();
-
-                        final Elements imgs = doc.select("img");
+                    if (articleDoc != null) {
+                        final Elements imgs = articleDoc.select("img");
                         Element img = null;
 
                         for (Element tmp : imgs) {
@@ -832,6 +887,7 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
 
                         if (img != null) {
                             String imgSrc = img.attr("src");
+                            final String imgSrcFirst = imgSrc;
 
                             // retarded schema-less urls
                             if (imgSrc.indexOf("//") == 0)
@@ -846,26 +902,13 @@ public class HeadlinesFragment extends Fragment implements OnItemClickListener, 
                             holder.flavorImageView.setOnClickListener(new OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    ArrayList<String> imgsList = new ArrayList<String>();
-
-                                    for (Element img : imgs) {
-                                        String imgSrc = img.attr("src");
-
-                                        if (imgSrc.indexOf("//") == 0)
-                                            imgSrc = "http:" + imgSrc;
-
-                                        imgsList.add(imgSrc);
-                                    }
 
                                     Intent intent = new Intent(m_activity, ArticleImagesPagerActivity.class);
-                                    intent.putExtra("urls", imgsList);
+                                    intent.putExtra("firstSrc", imgSrcFirst);
                                     intent.putExtra("title", article.title);
                                     intent.putExtra("content", article.content);
 
                                     startActivityForResult(intent, 0);
-                                    //m_activity.overridePendingTransition(android.R.anim.fade_in, 0);
-
-
                                 }
                             });
 

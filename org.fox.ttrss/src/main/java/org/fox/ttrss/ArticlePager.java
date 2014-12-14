@@ -52,10 +52,6 @@ public class ArticlePager extends Fragment {
 				ArticleFragment af = new ArticleFragment();
 				af.initialize(article);
 
-				if (m_prefs.getBoolean("dim_status_bar", false) && getView() != null && !m_activity.isCompatMode()) {
-					getView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
-				}
-				
 				return af;
 			}
 			return null;
@@ -226,6 +222,8 @@ public class ArticlePager extends Fragment {
 				put("op", "getHeadlines");
 				put("sid", sessionId);
 				put("feed_id", String.valueOf(feed.id));
+                put("show_excerpt", "true");
+                put("excerpt_length", String.valueOf(CommonActivity.EXCERPT_MAX_LENGTH));
 				put("show_content", "true");
 				put("include_attachments", "true");
 				put("limit", String.valueOf(HeadlinesFragment.HEADLINES_REQUEST_SIZE));
@@ -233,6 +231,7 @@ public class ArticlePager extends Fragment {
 				put("view_mode", m_activity.getViewMode());
 				put("skip", String.valueOf(fskip));
 				put("include_nested", "true");
+                put("has_sandbox", "true");
 				put("order_by", m_activity.getSortMode());
 				
 				if (feed.is_cat) put("is_cat", "true");
@@ -280,11 +279,7 @@ public class ArticlePager extends Fragment {
 		}
 		
 		m_activity.invalidateOptionsMenu();
-		
-		if (!m_activity.isCompatMode() && m_prefs.getBoolean("dim_status_bar", false)) {
-			getView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
-		}
-		
+
 		if (m_prefs.getBoolean("full_screen_mode", false)) {
 			m_activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);

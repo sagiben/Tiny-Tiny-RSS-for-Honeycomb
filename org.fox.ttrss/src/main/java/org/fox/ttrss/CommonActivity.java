@@ -9,12 +9,9 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Display;
-import android.view.WindowManager;
+import android.view.KeyEvent;
 import android.widget.Toast;
-
-import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import org.fox.ttrss.util.DatabaseHelper;
 
@@ -31,6 +28,9 @@ public class CommonActivity extends ActionBarActivity {
 	public final static String THEME_SEPIA = "THEME_SEPIA";
     public final static String THEME_AMBER = "THEME_AMBER";
 	public final static String THEME_DEFAULT = CommonActivity.THEME_LIGHT;
+
+    public static final int EXCERPT_MAX_LENGTH = 256;
+    public static final int EXCERPT_MAX_QUERY_LENGTH = 2048;
 
 	private SQLiteDatabase m_readableDb;
 	private SQLiteDatabase m_writableDb;
@@ -63,6 +63,16 @@ public class CommonActivity extends ActionBarActivity {
 	public boolean getUnreadOnly() {
 		return m_prefs.getBoolean("show_unread_only", true);
 	}
+
+    // fuck you LG FUCK YOU
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU){
+            openOptionsMenu();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 
 	public void setUnreadOnly(boolean unread) {
 		SharedPreferences.Editor editor = m_prefs.edit();
@@ -144,24 +154,6 @@ public class CommonActivity extends ActionBarActivity {
         return Math.round((float)dp * density);
     }
 
-	public void setStatusBarTint() {
-		if (android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.KITKAT &&
-                !m_prefs.getBoolean("full_screen_mode", false)) {
-
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
-                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-
-			SystemBarTintManager tintManager = new SystemBarTintManager(this);
-		    // enable status bar tint
-		    tintManager.setStatusBarTintEnabled(true);
-
-		    TypedValue tv = new TypedValue();
-		    getTheme().resolveAttribute(R.attr.statusBarHintColor, tv, true);
-		    
-		    tintManager.setStatusBarTintColor(tv.data);
-		}
-	}
-	
 	@Override
 	public void onSaveInstanceState(Bundle out) {
 		super.onSaveInstanceState(out);

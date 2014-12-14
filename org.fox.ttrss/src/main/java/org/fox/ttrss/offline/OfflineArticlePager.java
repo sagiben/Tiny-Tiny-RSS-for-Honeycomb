@@ -1,9 +1,5 @@
 package org.fox.ttrss.offline;
 
-import org.fox.ttrss.R;
-
-import com.viewpagerindicator.UnderlinePageIndicator;
-
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -19,6 +15,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+
+import com.viewpagerindicator.UnderlinePageIndicator;
+
+import org.fox.ttrss.R;
 
 public class OfflineArticlePager extends Fragment {
 	private final String TAG = this.getClass().getSimpleName();
@@ -95,11 +95,7 @@ public class OfflineArticlePager extends Fragment {
 			Log.d(TAG, "getItem: " + position);
 			
 			if (m_cursor.moveToPosition(position)) {
-				
-				if (m_prefs.getBoolean("dim_status_bar", false) && getView() != null && !m_activity.isCompatMode()) {
-					getView().setSystemUiVisibility(View.STATUS_BAR_HIDDEN);
-				}
-				
+
 				OfflineArticleFragment oaf = new OfflineArticleFragment();
 				oaf.initialize(m_cursor.getInt(m_cursor.getColumnIndex(BaseColumns._ID)));
 				
@@ -118,11 +114,7 @@ public class OfflineArticlePager extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		
-		if (!m_activity.isCompatMode() && m_prefs.getBoolean("dim_status_bar", false)) {
-			getView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
-		}
-		
+
 		if (m_prefs.getBoolean("full_screen_mode", false)) {
 			m_activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);

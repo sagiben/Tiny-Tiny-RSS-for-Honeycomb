@@ -7,8 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,7 +35,6 @@ public class HeadlinesActivity extends OnlineActivity implements HeadlinesEventL
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        setStatusBarTint();
 		setSmallScreen(findViewById(R.id.sw600dp_anchor) == null);
 		
 		GlobalState.getInstance().load(savedInstanceState);
@@ -224,6 +221,13 @@ public class HeadlinesActivity extends OnlineActivity implements HeadlinesEventL
 		invalidateOptionsMenu();
 		
 	}
+
+    public void showSidebar(boolean show) {
+        if (!isSmallScreen()) {
+            findViewById(R.id.headlines_fragment).setVisibility(show ? View.VISIBLE : View.GONE);
+            invalidateOptionsMenu();
+        }
+    }
 
 	@Override
 	public void onHeadlinesLoaded(boolean appended) {

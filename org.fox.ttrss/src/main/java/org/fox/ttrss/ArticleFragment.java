@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -18,9 +19,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.webkit.WebBackForwardList;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebView.HitTestResult;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.shamanland.fab.ShowHideOnScroll;
@@ -45,11 +49,77 @@ public class ArticleFragment extends Fragment  {
 
 	private SharedPreferences m_prefs;
 	private Article m_article;
-	private OnlineActivity m_activity;
-	
+	private HeadlinesActivity m_activity;
+    private WebView m_web;
+    protected View m_customView;
+    protected FrameLayout m_customViewContainer;
+    protected View m_contentView;
+    protected FSVideoChromeClient m_chromeClient;
+    protected View m_fab;
+
 	public void initialize(Article article) {
 		m_article = article;
 	}
+
+    private class FSVideoChromeClient extends WebChromeClient {
+        //protected View m_videoChildView;
+
+        private CustomViewCallback m_callback;
+
+        public FSVideoChromeClient(View container) {
+            super();
+
+        }
+
+        @Override
+        public void onShowCustomView(View view, CustomViewCallback callback) {
+            m_activity.getSupportActionBar().hide();
+
+            // if a view already exists then immediately terminate the new one
+            if (m_customView != null) {
+                callback.onCustomViewHidden();
+                return;
+            }
+            m_customView = view;
+            m_contentView.setVisibility(View.GONE);
+
+            m_customViewContainer.setVisibility(View.VISIBLE);
+            m_customViewContainer.addView(view);
+
+            if (m_fab != null) m_fab.setVisibility(View.GONE);
+
+            m_activity.showSidebar(false);
+
+            m_callback = callback;
+        }
+
+        @Override
+        public void onHideCustomView() {
+            super.onHideCustomView();
+
+            m_activity.getSupportActionBar().show();
+
+            if (m_customView == null)
+                return;
+
+            m_contentView.setVisibility(View.VISIBLE);
+            m_customViewContainer.setVisibility(View.GONE);
+
+            // Hide the custom view.
+            m_customView.setVisibility(View.GONE);
+
+            // Remove the custom view from its container.
+            m_customViewContainer.removeView(m_customView);
+            m_callback.onCustomViewHidden();
+
+            if (m_fab != null && m_prefs.getBoolean("enable_article_fab", true))
+                m_fab.setVisibility(View.VISIBLE);
+
+            m_customView = null;
+
+            m_activity.showSidebar(true);
+        }
+    }
 
 	//private View.OnTouchListener m_gestureListener;
 
@@ -88,22 +158,31 @@ public class ArticleFragment extends Fragment  {
 
 		if (savedInstanceState != null) {
 			m_article = savedInstanceState.getParcelable("article");
+            //m_fsviewShown = savedInstanceState.getBoolean("fsviewShown");
 		}
 
 		boolean useTitleWebView = m_prefs.getBoolean("article_compat_view", false);
 		
 		View view = inflater.inflate(useTitleWebView ? R.layout.article_fragment_compat : R.layout.article_fragment, container, false);
-		
-		if (m_article != null) {
+
+        /* if (m_fsviewShown) {
+            view.findViewById(R.id.article_fullscreen_video).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.article_scrollview).setVisibility(View.INVISIBLE);
+        } */
+
+        if (m_article != null) {
+
+            m_contentView = view.findViewById(R.id.article_scrollview);
+            m_customViewContainer = (FrameLayout) view.findViewById(R.id.article_fullscreen_video);
 
             View scrollView = view.findViewById(R.id.article_scrollview);
-            View fab = view.findViewById(R.id.article_fab);
+            m_fab = view.findViewById(R.id.article_fab);
 
-            if (scrollView != null && fab != null) {
+            if (scrollView != null && m_fab != null) {
                 if (m_prefs.getBoolean("enable_article_fab", true)) {
-                    scrollView.setOnTouchListener(new ShowHideOnScroll(fab));
+                    scrollView.setOnTouchListener(new ShowHideOnScroll(m_fab));
 
-                    fab.setOnClickListener(new OnClickListener() {
+                    m_fab.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             try {
@@ -119,7 +198,7 @@ public class ArticleFragment extends Fragment  {
                         }
                     });
                 } else {
-                    fab.setVisibility(View.GONE);
+                    m_fab.setVisibility(View.GONE);
                 }
             }
 
@@ -176,7 +255,7 @@ public class ArticleFragment extends Fragment  {
 				if (m_activity.getApiLevel() >= 4 && m_article.comments_count > 0) {
 					comments.setTextSize(TypedValue.COMPLEX_UNIT_SP, articleSmallFontSize);
 					
-					String commentsTitle = getString(R.string.article_comments, m_article.comments_count);
+					String commentsTitle = getResources().getQuantityString(R.plurals.article_comments, m_article.comments_count, m_article.comments_count);
 					comments.setText(commentsTitle);
 					//comments.setPaintFlags(title.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
 					comments.setOnClickListener(new OnClickListener() {					
@@ -214,42 +293,45 @@ public class ArticleFragment extends Fragment  {
 				
 			}
 			
-			final WebView web = (WebView)view.findViewById(R.id.article_content);
+			m_web = (WebView)view.findViewById(R.id.article_content);
 			
-			if (web != null) {
+			if (m_web != null) {
 				
-				web.setOnLongClickListener(new View.OnLongClickListener() {					
+				m_web.setOnLongClickListener(new View.OnLongClickListener() {
 					@Override
 					public boolean onLongClick(View v) {
 						HitTestResult result = ((WebView)v).getHitTestResult();
 
                         if (result != null && (result.getType() == HitTestResult.IMAGE_TYPE || result.getType() == HitTestResult.SRC_IMAGE_ANCHOR_TYPE)) {
-							registerForContextMenu(web);
-							m_activity.openContextMenu(web);
-							unregisterForContextMenu(web);
+							registerForContextMenu(m_web);
+							m_activity.openContextMenu(m_web);
+							unregisterForContextMenu(m_web);
 							return true;
 						} else {
 							if (m_activity.isCompatMode()) {
 								KeyEvent shiftPressEvent = new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_SHIFT_LEFT, 0, 0);
-								shiftPressEvent.dispatch(web);
+								shiftPressEvent.dispatch(m_web);
 							}
 							
 							return false;
 						}
 					}
 				});
-				
+
+                boolean acceleratedWebview = true;
+
 			    // prevent flicker in ics
 			    if (!m_prefs.getBoolean("webview_hardware_accel", true) || useTitleWebView) {
 			    	if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-			    		web.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+			    		m_web.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+                        acceleratedWebview = false;
 			    	}
 			    }
 
 				String content;
 				String cssOverride = "";
 				
-				WebSettings ws = web.getSettings();
+				WebSettings ws = m_web.getSettings();
 				ws.setSupportZoom(false);
 
 				TypedValue tvBackground = new TypedValue();
@@ -273,18 +355,32 @@ public class ArticleFragment extends Fragment  {
 			    cssOverride += " a:link {color: "+linkHexColor+";} a:visited { color: "+linkHexColor+";}";
 
 				String articleContent = m_article.content != null ? m_article.content : "";
-				
-				Document doc = Jsoup.parse(articleContent);
-				
-				if (doc != null) {
-					// thanks webview for crashing on <video> tag
-					Elements videos = doc.select("video");
-					
-					for (Element video : videos)
-						video.remove();
-					
-					articleContent = doc.toString();
-				}
+
+                if (m_activity.isCompatMode() || !acceleratedWebview) {
+                    Document doc = Jsoup.parse(articleContent);
+
+                    if (doc != null) {
+                        // thanks webview for crashing on <video> tag
+                        Elements videos = doc.select("video");
+
+                        for (Element video : videos)
+                            video.remove();
+
+                        videos = doc.select("iframe");
+
+                        for (Element video : videos)
+                            video.remove();
+
+                        articleContent = doc.toString();
+                    }
+                } else {
+                    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        ws.setJavaScriptEnabled(true);
+
+                        m_chromeClient = new FSVideoChromeClient(view);
+                        m_web.setWebChromeClient(m_chromeClient);
+                    }
+                }
 
 				if (m_prefs.getBoolean("justify_article_text", true)) {
 					cssOverride += "body { text-align : justify; } ";
@@ -299,7 +395,7 @@ public class ArticleFragment extends Fragment  {
 					"<meta name=\"viewport\" content=\"width=device-width, user-scalable=no\" />" +
 					"<style type=\"text/css\">" +
 					"body { padding : 0px; margin : 0px; line-height : 130%; }" +
-					"img { max-width : 100%; width : auto; height : auto; }" +
+					"img, video, iframe { max-width : 100%; width : auto; height : auto; }" +
                     " table { width : 100%; }" +
 					cssOverride +
 					"</style>" +
@@ -346,8 +442,18 @@ public class ArticleFragment extends Fragment  {
 					} catch (MalformedURLException e) {
 						//
 					}
-					
-					web.loadDataWithBaseURL(baseUrl, content, "text/html", "utf-8", null);
+
+                    if (savedInstanceState == null || !acceleratedWebview) {
+                        m_web.loadDataWithBaseURL(baseUrl, content, "text/html", "utf-8", null);
+                    } else {
+                        WebBackForwardList rc = m_web.restoreState(savedInstanceState);
+
+                        if (rc == null) {
+                            // restore failed...
+                            m_web.loadDataWithBaseURL(baseUrl, content, "text/html", "utf-8", null);
+                        }
+                    }
+
 				} catch (RuntimeException e) {					
 					e.printStackTrace();
 				}
@@ -355,7 +461,7 @@ public class ArticleFragment extends Fragment  {
 //				if (m_activity.isSmallScreen())
 //					web.setOnTouchListener(m_gestureListener);
 				
-				web.setVisibility(View.VISIBLE);
+				m_web.setVisibility(View.VISIBLE);
 			}
 			
 			TextView dv = (TextView)view.findViewById(R.id.date);
@@ -415,6 +521,43 @@ public class ArticleFragment extends Fragment  {
 		return view;    	
 	}
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (!m_activity.isCompatMode()) {
+            m_web.onPause();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (!m_activity.isCompatMode()) {
+            m_web.onResume();
+        }
+    }
+
+    public boolean inCustomView() {
+        return (m_customView != null);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        if (inCustomView()) {
+            hideCustomView();
+        }
+    }
+
+    public void hideCustomView() {
+        if (m_chromeClient != null) {
+            m_chromeClient.onHideCustomView();
+        }
+    }
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();		
@@ -433,8 +576,7 @@ public class ArticleFragment extends Fragment  {
 		super.onAttach(activity);		
 		
 		m_prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
-		m_activity = (OnlineActivity)activity;
-		//m_article = m_onlineServices.getSelectedArticle(); 
-		
+		m_activity = (HeadlinesActivity)activity;
+
 	}
 }
