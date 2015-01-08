@@ -10,7 +10,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.text.BidiFormatter;
 import android.text.Html;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -40,9 +42,11 @@ import org.jsoup.select.Elements;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.text.Bidi;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class ArticleFragment extends Fragment  {
 	private final String TAG = this.getClass().getSimpleName();
@@ -385,9 +389,13 @@ public class ArticleFragment extends Fragment  {
 				if (m_prefs.getBoolean("justify_article_text", true)) {
 					cssOverride += "body { text-align : justify; } ";
 				}
-				
+
+                //if (m_article.lang.equals("he"))
+                if (BidiFormatter.getInstance().isRtl(m_article.title))
+                    cssOverride += "body { direction: rtl; } ";
+
 				ws.setDefaultFontSize(articleFontSize);
-				
+
 				content = 
 					"<html>" +
 					"<head>" +
@@ -400,13 +408,13 @@ public class ArticleFragment extends Fragment  {
 					cssOverride +
 					"</style>" +
 					"</head>" +
-					"<body>" + articleContent;
+					"<body>" + articleContent.replace("<html>", "").replace("<body>", "").replace("</body>","").replace("</html>","");
 				
 				if (useTitleWebView) {
 					content += "<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>";
 				}
-				
-				if (m_article.attachments != null && m_article.attachments.size() != 0) {
+
+                if (m_article.attachments != null && m_article.attachments.size() != 0) {
 					String flatContent = articleContent.replaceAll("[\r\n]", "");
 					boolean hasImages = flatContent.matches(".*?<img[^>+].*?");
 					
